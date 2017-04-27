@@ -15,16 +15,29 @@ typedef struct{
     int val2;
 }Param;
 
-void *vecAdd(void * Param){
-
-}
-
 // Input vectors
     float *a;
     float *b;
     // Output vector
     float *c;
  
+void *vecAdd(void * p){
+    Param* vetor = (Param*) p;
+    float inicio,fim;
+    inicio = vetor->val1;
+    fim = vetor->val2;
+
+    /*printf("Inicio: %f\n",inicio);
+    printf("fim: %f\n",fim);
+*/
+    for(int i=inicio;i<=fim;i++){
+        c[i] = a[i]+b[i];
+        //printf(" %f ", a[i]+b[i]);
+        //printf("\n\nc[i]%f\n",i,c[i] );
+    }
+
+}
+
 int main( int argc, char *argv[] ){
     
     int num_threads, i;
@@ -67,27 +80,34 @@ int main( int argc, char *argv[] ){
  
     // Inicializa os vetores.
     for(i=0; i<n; i++) {
-        a[i] = sinf(i)*sinf(i);
-        b[i] = cosf(i)*cosf(i);
+        a[i] = i+0.1;
+        b[i] = i+10.1;
     }
     
     /* threads here!!!! */
-    pthread_t vetThread[num_threads];
-    Param vetParam[num_threads];
-    //vetThread = (pthread_t*) malloc(sizeof(pthread_t)*num_threads);
-    //vetParam = (Param*) malloc(sizeof(param) * num_threads);
-    
-    int k = n/num_threads;// tamanho do vetor/numero de threads(serve para saber em quanstas partes o vetor será separado)
-    int qtdeIteracoes; //conta quantas vezes foi iterado o for
+    Param vetParam[num_threads]; 
+    int k = n/num_threads;
+    int numIteracoes = 0;
     for(i=0;i<n;i+=k){
-    	vetParam[qtdeIteracoes].val1 = i;
-    	vetParam[qtdeIteracoes].val2 = i+(k-1);
-    	if(qtdeIteracoes+1 == num_threads){
-    		vetParam[qtdeIteracoes].val2 = n%num_threads;
-    		break;
-    	}
-    	qtdeIteracoes++;
+        vetParam[numIteracoes].val1 = i;
+        vetParam[numIteracoes].val2 = (i+(k-1));
+        if(numIteracoes+1 == num_threads){
+            vetParam[numIteracoes].val2 +=n%num_threads;
+            break;
+        }
+        numIteracoes++;
+    }  
+
+    pthread_t vetThread[num_threads];
+
+    for(i=0;i<num_threads;i++){
+        printf("\t\t\n%i\n",pthread_create(&vetThread[i],NULL,vecAdd,&vetParam[i]));
     }
+
+    for(i=0;i<num_threads;i++){
+        pthread_join(vetThread[i],NULL);
+    }
+
 
  
     // Show results
